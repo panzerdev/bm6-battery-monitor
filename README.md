@@ -37,6 +37,10 @@ Under the ESPHome directory you can find a configuration that will allow you to 
 For details on how I reverse engineered this, see the below post:  
 https://www.tarball.ca/posts/reverse-engineering-the-bm6-ble-battery-monitor/
 
+# Other Names
+The following product is a BM6 with a different name:  
+Sealey Vehicle Finder & Battery Monitor Sensor BT2020 
+
 # Credits
 I wouldn't have been able to create this without the following resources:  
 https://github.com/KrystianD/bm2-battery-monitor/blob/master/.docs/reverse_engineering.md  
