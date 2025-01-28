@@ -59,7 +59,10 @@ async def get_bm6_data(address, format):
     message = decrypt(data)
     if message[0:6] == "d15507": # Probably not needed, but voltage/temp messages start with d15507
       bm6_data["voltage"] = int(message[15:18],16) / 100
-      bm6_data["temperature"] = int(message[8:10],16)
+      if message[6:8] == "01":
+        bm6_data["temperature"] = -int(message[8:10],16)
+      else:
+        bm6_data["temperature"] = int(message[8:10],16)
 
   async with BleakClient(address, timeout=30) as client:
     # The d15507 command tells the BM6 to start sending volt/temp notifications
@@ -77,8 +80,8 @@ async def get_bm6_data(address, format):
 
     # Output data
     if format == "ascii":
-      print("Voltage: " + str(bm6_data["voltage"]))
-      print("Temperature: " + str(bm6_data["temperature"]))
+      print("Voltage: " + str(bm6_data["voltage"]) + "v")
+      print("Temperature: " + str(bm6_data["temperature"]) + "C")
     if format == "json":
       print(json.dumps(bm6_data))
 
