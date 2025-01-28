@@ -78,7 +78,13 @@ sensor:
       mbedtls_aes_crypt_cbc(&aes, MBEDTLS_AES_DECRYPT, 16, iv, (uint8_t*)&x[0], output);
       mbedtls_aes_free(&aes);
 
-      int tempC = output[4];
+      int tempC;
+      if (output[3] == 1) {
+        tempC = -output[4];
+      } else {
+        tempC = output[4];
+      }
+      
       float volts = ((output[7] << 8) | output[8]) / 100.0f;
       
       if (volts > 0) {
