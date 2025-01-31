@@ -42,7 +42,8 @@ async def get_bm6_data(address, format):
 
   bm6_data = {
     "voltage": "",
-    "temperature": ""
+    "temperature": "",
+    "soc": ""
   }
 
   def decrypt(crypted):
@@ -59,6 +60,7 @@ async def get_bm6_data(address, format):
     message = decrypt(data)
     if message[0:6] == "d15507": # Probably not needed, but voltage/temp messages start with d15507
       bm6_data["voltage"] = int(message[15:18],16) / 100
+      bm6_data["soc"] = int(message[12:14],16)
       if message[6:8] == "01":
         bm6_data["temperature"] = -int(message[8:10],16)
       else:
@@ -82,6 +84,7 @@ async def get_bm6_data(address, format):
     if format == "ascii":
       print("Voltage: " + str(bm6_data["voltage"]) + "v")
       print("Temperature: " + str(bm6_data["temperature"]) + "C")
+      print("SoC: " + str(bm6_data["soc"]) + "%")
     if format == "json":
       print(json.dumps(bm6_data))
 
