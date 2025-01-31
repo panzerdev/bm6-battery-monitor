@@ -58,7 +58,14 @@ sensor:
     unit_of_measurement: "V"
     icon: "mdi:car-battery"
     accuracy_decimals: 2
-
+    
+- platform: template
+    name: "SoC"
+    id: soc
+    unit_of_measurement: "%"
+    icon: "mdi:gauge"
+    accuracy_decimals: 2
+    
   - platform: ble_client
     type: characteristic
     ble_client_id: bm6
@@ -84,12 +91,13 @@ sensor:
       } else {
         tempC = output[4];
       }
-      
+      float socp = output[6] *1.0f;
       float volts = ((output[7] << 8) | output[8]) / 100.0f;
       
       if (volts > 0) {
         id(temperature).publish_state(tempC);
         id(voltage).publish_state(volts);
+        id(soc).publish_state(socp);
         id(bm6).disconnect();
       }
       
