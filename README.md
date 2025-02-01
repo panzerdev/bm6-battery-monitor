@@ -10,11 +10,12 @@ Address           RSSI
 50:54:7B:xx:xx:xx -83
 
 bm6-battery-monitor.py --address 50:54:7B:xx:xx:xx
-Voltage: 11.93
-Temperature: 24
+Voltage: 11.93v
+Temperature: 24C
+SoC: 76%
 
 bm6-battery-monitor.py --address 50:54:7B:xx:xx:xx --format=json
-{"voltage": 11.93, "temperature": 24}
+{"voltage": 11.93, "temperature": 24, "soc": 76}
 ```
 Tested on a Linux VM with a USB Bluetooth dongle and a Windows laptop with built in Bluetooth. Have not tested this on MacOS but in theory it should work. 
 
