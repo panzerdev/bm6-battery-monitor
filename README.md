@@ -47,4 +47,4 @@ I wouldn't have been able to create this without the following resources:
 https://github.com/KrystianD/bm2-battery-monitor/blob/master/.docs/reverse_engineering.md  
 https://doubleagent.net/bm2-reversing-the-ble-protocol-of-the-bm2-battery-monitor/  
 https://www.youtube.com/watch?v=lhLff9VACU4  
-
+mdande (https://www.github.com/mdande) for State of Charge (SoC) pull request
