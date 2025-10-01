@@ -1,0 +1,8 @@
+services:
+  bm6:
+    image: bm6-monitor
+    network_mode: host
+    volumes:
+      - /var/run/dbus:/var/run/dbus
+    command: ["--monitor","--name", "Battery Guard", "--mqtt-host", "192.168.2.22", "--mqtt-topic", "bm6/devices" ]
+    restart: unless-stopped
