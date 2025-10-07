@@ -1,29 +1,4 @@
 #!/usr/bin/env python3
-# bm6-battery-monitor v2.0 – add MQTT loop
-#
-#  The original script is kept verbatim up to the point where the
-#  command‑line parser is constructed.  The new helpers and the new
-#  "monitor" sub‑command are inserted just after the existing code.
-#
-#  Requires:
-#      pip install bleak python‑cryptodome paho‑mqtt
-#
-#  Usage example:
-#      python bm6.py monitor \
-#          --name BM6 \
-#          --interval 30 \
-#          --mqtt-host localhost \
-#          --mqtt-topic ble/battery
-#
-#  The program will publish, e.g.:
-#      mqtt://localhost
-#      topic: ble/battery/AA:BB:CC:DD:EE:FF
-#      payload:
-#          {"voltage": 3.7, "temperature": 22, "soc": 90}
-#
-#  Author:  Your Name
-#  Date:    2025‑09‑24
-#
 
 import argparse
 import json
@@ -31,10 +6,13 @@ import asyncio
 import signal
 import sys
 import logging
+import os
 from Crypto.Cipher import AES
 from bleak import BleakClient, BleakScanner
 import paho.mqtt.client as mqtt
 import bluetooth_auto_recovery
+
+bluetooth_mac = os.environ.get('BLUETOOTH_MAC', None)
 
 # Setup logging to include timestamps
 logging.basicConfig(
@@ -124,7 +102,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                 devices = await scan_bm6_devices(name, timeout)
             except Exception as exc:
                 log(f"[{name}] error scanning for devices: {exc}")
-                await bluetooth_auto_recovery.recover_adapter(0)
+                await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
                 await asyncio.sleep(interval)
                 continue
 
@@ -139,7 +117,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                     data = await fetch_bm6_data(address)
                 except Exception as exc:
                     log(f"[{address}] error reading data: {exc}")
-                    await bluetooth_auto_recovery.recover_adapter(0)
+                    await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
                     await asyncio.sleep(interval)
                     continue
 
@@ -196,7 +174,7 @@ if __name__ == "__main__":
             print(json.dumps(data) if args.format == "json" else data)
         except Exception as exc:
             log(f"Error fetching address: {exc}")
-            asyncio.run(bluetooth_auto_recovery.recover_adapter(0))
+            asyncio.run(bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac))
 
     elif args.scan:
         try:
@@ -204,7 +182,7 @@ if __name__ == "__main__":
             print(json.dumps(data) if args.format == "json" else data)
         except Exception as exc:
             log(f"Error scanning: {exc}")
-            asyncio.run(bluetooth_auto_recovery.recover_adapter(0))
+            asyncio.run(bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac))
 
     elif args.monitor:
         # Basic validation
