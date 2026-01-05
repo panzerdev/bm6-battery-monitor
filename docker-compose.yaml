@@ -6,3 +6,6 @@ services:
       - /var/run/dbus:/var/run/dbus
     command: ["--monitor","--name", "Battery Guard", "--mqtt-host", "192.168.2.22", "--mqtt-topic", "bm6/devices" ]
     restart: unless-stopped
+    privileged: true
+    environment:
+      - BLUETOOTH_MAC=B8:27:EB:EA:3B:20
