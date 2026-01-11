@@ -7,6 +7,9 @@ import signal
 import sys
 import logging
 import os
+import socket
+import platform
+import time
 from Crypto.Cipher import AES
 from bleak import BleakClient, BleakScanner
 import paho.mqtt.client as mqtt
@@ -21,6 +24,49 @@ logging.basicConfig(
     level=logging.INFO,
 )
 log = logging.info
+
+
+def get_host_info():
+    """Get information about the host system."""
+    try:
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+    except:
+        hostname = "unknown"
+        local_ip = "unknown"
+    
+    return {
+        "hostname": hostname,
+        "local_ip": local_ip,
+        "platform": platform.system(),
+        "platform_release": platform.release(),
+        "architecture": platform.machine(),
+        "python_version": platform.python_version(),
+        "bluetooth_mac": bluetooth_mac,
+        "startup_time": int(time.time()),
+        "status": "online"
+    }
+
+
+async def publish_startup_info(client, mqtt_topic):
+    """Publish host information and online status on startup."""
+    host_info = get_host_info()
+    
+    # Publish host info to a dedicated topic
+    host_topic = f"{mqtt_topic}/host"
+    host_payload = json.dumps(host_info, indent=2)
+    client.publish(host_topic, host_payload, retain=True)
+    log(f"Published host information to {host_topic}")
+    
+    # Publish online status
+    status_topic = f"{mqtt_topic}/status"
+    status_payload = json.dumps({
+        "status": "online",
+        "timestamp": int(time.time()),
+        "hostname": host_info["hostname"]
+    })
+    client.publish(status_topic, status_payload, retain=True)
+    log(f"Published online status to {status_topic}")
 
 
 async def scan_bm6_devices(name: str, timeout: int):
@@ -94,6 +140,9 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
     client.connect(mqtt_host)
     client.loop_start()          # run network loop in a background thread
 
+    # Publish startup information
+    await publish_startup_info(client, mqtt_topic)
+
     try:
         while True:
             log(f"[{name}] Scanning for devices …")
@@ -105,6 +154,16 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                 await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
                 await asyncio.sleep(interval)
                 continue
+
+            # Publish scan results (without retain flag)
+            scan_topic = f"{mqtt_topic}/scan"
+            scan_payload = json.dumps({
+                "timestamp": int(asyncio.get_event_loop().time()),
+                "devices_found": len(devices),
+                "devices": [{"address": addr, "rssi": rssi} for addr, rssi in devices]
+            })
+            client.publish(scan_topic, scan_payload, retain=False)
+            log(f"[{name}] published scan results to {scan_topic}: {len(devices)} devices found")
 
             if not devices:
                 log(f"[{name}] No devices found – sleeping {interval}s …")
@@ -132,6 +191,16 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
             await asyncio.sleep(interval)
 
     finally:
+        # Publish offline status before disconnecting
+        status_topic = f"{mqtt_topic}/status"
+        offline_payload = json.dumps({
+            "status": "offline",
+            "timestamp": int(time.time()),
+            "hostname": get_host_info()["hostname"]
+        })
+        client.publish(status_topic, offline_payload, retain=True)
+        log("Published offline status")
+        
         client.loop_stop()
         client.disconnect()
 
