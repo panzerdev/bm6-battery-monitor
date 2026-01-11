@@ -4,7 +4,7 @@ services:
     network_mode: host
     volumes:
       - /var/run/dbus:/var/run/dbus
-    command: ["--monitor","--name", "Battery Guard", "--mqtt-host", "192.168.2.22", "--mqtt-topic", "bm6/devices" ]
+    command: ["--monitor","--name", "Battery Guard", "--mqtt-host", "192.168.2.22", "--mqtt-topic", "bm6" ]
     restart: unless-stopped
     privileged: true
     environment:

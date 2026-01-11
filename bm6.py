@@ -217,7 +217,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                     continue
 
                 # Compose topic and payload
-                full_topic = f"{mqtt_topic}/{address.replace(':', '-')}"
+                full_topic = f"{mqtt_topic}/devices/{address.replace(':', '-')}"
                 payload = json.dumps(data)
                 client.publish(full_topic, payload, retain=True)
                 log(f"[{address}] published to {full_topic}")
