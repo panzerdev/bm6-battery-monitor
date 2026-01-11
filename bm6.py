@@ -26,14 +26,50 @@ logging.basicConfig(
 log = logging.info
 
 
+def get_local_ip():
+    """Get the actual local IP address (not 127.0.0.1)."""
+    try:
+        # Method 1: Connect to a remote address to see which local IP is used
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except:
+        pass
+    
+    try:
+        # Method 2: Try to parse ip route output (Linux)
+        import subprocess
+        result = subprocess.run(['ip', 'route', 'get', '1.1.1.1'], 
+                              capture_output=True, text=True, check=True)
+        for line in result.stdout.split('\n'):
+            if 'src' in line:
+                return line.split('src')[1].split()[0]
+    except:
+        pass
+    
+    try:
+        # Method 3: Try to get from hostname resolution to external DNS
+        hostname = socket.gethostname()
+        # Get all addresses for this hostname
+        addresses = socket.getaddrinfo(hostname, None, socket.AF_INET)
+        for addr in addresses:
+            ip = addr[4][0]
+            if not ip.startswith('127.'):
+                return ip
+    except:
+        pass
+    
+    return "unknown"
+
+
 def get_host_info():
     """Get information about the host system."""
     try:
         hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
     except:
         hostname = "unknown"
-        local_ip = "unknown"
+        
+    local_ip = get_local_ip()
     
     return {
         "hostname": hostname,
