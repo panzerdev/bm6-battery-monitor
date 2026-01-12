@@ -190,7 +190,6 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                 log(f"[{name}] error scanning for devices: {exc}")
                 await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
                 log("Auto-recovery done, continuing …")
-                await asyncio.sleep(interval)
                 continue
 
             # Publish scan results (without retain flag)
@@ -222,7 +221,6 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                     log(f"[{address}] error reading data: {exc}")
                     await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
                     log("Auto-recovery done, continuing …")
-                    await asyncio.sleep(interval)
                     continue
 
                 # Compose topic and payload
