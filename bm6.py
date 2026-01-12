@@ -10,6 +10,7 @@ import os
 import socket
 import platform
 import time
+import datetime
 from Crypto.Cipher import AES
 from bleak import BleakClient, BleakScanner
 import paho.mqtt.client as mqtt
@@ -98,7 +99,7 @@ async def publish_startup_info(client, mqtt_topic):
     status_topic = f"{mqtt_topic}/status"
     status_payload = json.dumps({
         "status": "online",
-        "timestamp": int(time.time()),
+        "timestamp": datetime.datetime.now().isoformat(),
         "hostname": host_info["hostname"]
     })
     client.publish(status_topic, status_payload, retain=True)
@@ -194,7 +195,8 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
             # Publish scan results (without retain flag)
             scan_topic = f"{mqtt_topic}/scan"
             scan_payload = json.dumps({
-                "timestamp": int(asyncio.get_event_loop().time()),
+                "uptime": int(asyncio.get_event_loop().time()),
+                "timestamp": datetime.datetime.now().isoformat(),
                 "devices_found": len(devices),
                 "devices": [{"address": addr, "rssi": rssi} for addr, rssi in devices]
             })
@@ -210,6 +212,11 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
             for address, rssi in devices:
                 try:
                     data = await fetch_bm6_data(address)
+                    
+                    # Add timestamp and RSSI to device data
+                    data["timestamp"] = datetime.datetime.now().isoformat()
+                    data["rssi"] = rssi
+                    
                 except Exception as exc:
                     log(f"[{address}] error reading data: {exc}")
                     await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
@@ -231,7 +238,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
         status_topic = f"{mqtt_topic}/status"
         offline_payload = json.dumps({
             "status": "offline",
-            "timestamp": int(time.time()),
+            "timestamp": datetime.datetime.now().isoformat(),
             "hostname": get_host_info()["hostname"]
         })
         client.publish(status_topic, offline_payload, retain=True)
