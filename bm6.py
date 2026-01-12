@@ -219,7 +219,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                 # Compose topic and payload
                 full_topic = f"{mqtt_topic}/devices/{address.replace(':', '-')}"
                 payload = json.dumps(data)
-                client.publish(full_topic, payload, retain=True)
+                client.publish(full_topic, payload, retain=False)
                 log(f"[{address}] published to {full_topic}")
 
             # 3. Wait until the next interval
