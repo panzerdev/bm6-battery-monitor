@@ -189,6 +189,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
             except Exception as exc:
                 log(f"[{name}] error scanning for devices: {exc}")
                 await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
+                log("Auto-recovery done, continuing …")
                 await asyncio.sleep(interval)
                 continue
 
@@ -220,6 +221,7 @@ async def monitor_loop(name, interval, mqtt_host, mqtt_topic, timeout):
                 except Exception as exc:
                     log(f"[{address}] error reading data: {exc}")
                     await bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac)
+                    log("Auto-recovery done, continuing …")
                     await asyncio.sleep(interval)
                     continue
 
@@ -287,6 +289,7 @@ if __name__ == "__main__":
         except Exception as exc:
             log(f"Error fetching address: {exc}")
             asyncio.run(bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac))
+            log("Auto-recovery done, continuing …")
 
     elif args.scan:
         try:
@@ -295,6 +298,7 @@ if __name__ == "__main__":
         except Exception as exc:
             log(f"Error scanning: {exc}")
             asyncio.run(bluetooth_auto_recovery.recover_adapter(hci=0, mac=bluetooth_mac))
+            log("Auto-recovery done, continuing …")
 
     elif args.monitor:
         # Basic validation
